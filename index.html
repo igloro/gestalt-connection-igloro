@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Igloro connection</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Jost:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <!--    <script src="https://unpkg.com/vue@next" defer></script>-->
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.2.36" defer></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+
+
+    <script src="app.js" defer></script>
+  </head>
+
+  <style>
+
+  body {
+    background-image: url('11CE.gif');
+    background-size: 32px 32px;
+  }
+
+  body.bg1 {
+    background-image: url('0417.gif');
+  }
+
+  body.bg2 {
+    background-image: url('00AD.gif');
+  }
+
+  body.bg3 {
+    background-image: url('11CE.gif');
+  }
+
+  #container {
+    position: relative;
+    width: 640px;
+    height: 320px;
+    border: 1px solid #c0c0c0;
+    background-image: url('0089.gif');
+    background-size: 32px 32px;
+  }
+
+  #hero {
+    position: absolute;
+    width: 32px;
+    height: 32px;
+    background-image: url('human.gif');
+    background-size: cover;
+  }
+
+  .monster
+  {
+    position: absolute;
+    width: 32px;
+    height: 32px;
+    background-image: url('human.gif');
+    background-size: cover;
+    filter: grayscale(100%);
+  }
+
+
+  #hero.dead {
+    background-image: url('033A.gif');
+    opacity: 1;
+  }
+
+  #stats, #description {
+    margin-top: 10px; 
+    font-size: 11px; 
+    color: #c0c0c0; 
+    background: rgb(66 66 66); 
+    padding: 20px;
+    margin-bottom: 10px;
+  }
+
+  .sms 
+  {
+    background: #FFF;
+    border: 1px solid #c0c0c0;
+    border-radius: 3px;
+    position: absolute;
+    z-index: 4;
+    font-size: 12px;
+    cursor: pointer;
+    padding: 4px;
+  }
+
+  .distraction {
+    background: #FFF;
+    border: 1px solid #c0c0c0;
+    border-radius: 3px;
+    position: absolute;
+    z-index: 4;
+    font-size: 12px;
+    cursor: pointer;
+    padding: 4px;
+
+    white-space: nowrap;
+  }
+
+  #start_game {
+    display: none;
+
+    width: 200px;
+    height: 30px;
+    background: #FFF;
+    border-radius: 5px;
+    text-align: center;
+    line-height: 20px;
+    position: absolute;
+    left: 50%;
+    margin-left: -100px;
+    top: 69%;
+    line-height: 30px;
+
+    cursor: pointer;
+    opacity: 0.7;
+    z-index: 5;
+  }
+
+  #start_game:hover {
+    opacity: 1;
+  }
+
+  #start_game.notstarted {
+    display: block;
+  }
+
+  .sms small
+  {
+    font-size: 9px;
+  }
+
+  .hide {
+    display: none;
+  }
+
+  .distration_q 
+  {
+    float: left;
+    margin-right: 10px;
+    border: 1px solid #c0c0c0;
+    border-radius: 4px;
+    background-color: #f0f0f0;
+    padding: 0px 7px; 
+  }
+
+  .bg
+  {
+    border: 1px solid #232323;
+    margin-right: 5px;
+    margin-top: 5px;
+    cursor: pointer;
+  }
+
+  .bg.selected {
+    border-color: #a7a090;
+  }
+
+  </style>
+
+  <body>
+    <section id="game">
+      <!--:class="{'disabled': started}" v-on:click="startGame()"-->
+
+
+      <div id="stats">
+        <div style="float: left">Connected gestalts with your soul: {{ iteration }}</div>
+        <div style="float: right">Speed: {{ speed }}</div>
+        <div style="clear: both"></div>
+      </div>
+
+      <!--v-html="container"-->
+      <div id="container">
+
+
+        <div id="start_game" :class="{ notstarted: !started }" v-on:click="startGame">Start game</div>
+
+        <div id="hero" :class="{ dead: isDead, notstarted: !started }" :style="{top:y * movemenSize + 'px', left:x * movemenSize + 'px', opacity: opacity + '%'}" ></div>
+
+        <div v-for="m in monsters" class="monster" :style="{top:m.y * movemenSize + 'px', left:m.x * movemenSize + 'px'}"></div>
+      
+      
+      
+
+      
+        <div v-for="sms in sms_alerts" class="sms" v-on:click="removeSMS(sms.x, sms.y)" :style="{top:sms.y  + 'px', left:sms.x  + 'px'}"><small>SMS:</small><Br>{{ sms.t }}</div>
+        
+        
+        <div v-for="distraction in distractions" class="distraction" v-on:click="removeSMS(distraction.x, distraction.y)" :style="{top:distraction.y  + 'px', left:distraction.x  + 'px'}">
+          <div>{{ distraction.q }}</div>
+
+
+          <div v-if="distraction.pos == 1">
+            <span class="distration_q question_good" v-on:click="removeDist(distraction.x, distraction.y, distraction.a)">{{ distraction.a  }}</span>
+            <span class="distration_q question_bad" v-on:click="removeDist(distraction.x, distraction.y, distraction.ba)">{{ distraction.ba }}</span>
+          </div>
+
+          <div v-else>
+            <span class="distration_q question_good" v-on:click="removeDist(distraction.x, distraction.y, distraction.ba)">{{ distraction.ba }}</span>
+            <span class="distration_q question_bad" v-on:click="removeDist(distraction.x, distraction.y, distraction.a)">{{ distraction.a }}</span>
+          </div>
+
+        </div>
+      
+      
+      
+      </div>
+
+
+      <div id="description" :class="{ hide: started }">
+        <a href="https://en.wikipedia.org/wiki/Gestalt_psychology" target="_blank" style="color: #FFF">Gestalt</a> connection. Your goal is to connect your bodies into single. You can do that by moving your ( human ) position into "appeared" ghosts positions which represents your not finished goals.
+        Controls: arrows / aswd . When ready - click start.
+
+        <div>
+          <img src="0417.gif" class="bg" param-id="1" />
+          <img src="00AD.gif" class="bg" param-id="2" /> 
+          <img src="11CE.gif" class="bg selected" param-id="3" />
+        </div>
+      </div>
+
+
+
+
+
+
+      
+
+      <div class="music-player2">
+        <audio
+          ref="audio2"
+          preload="auto"
+          volume="0.3"
+          loop
+        >
+          <source src="tPORt - Graphic Conveyer 2.4crk.mp3" />
+        </audio>
+        <div @click="turnOn(file)" class="toggle-sound paused"></div>
+      </div>
+
+
+      <div class="music-player">
+        <audio
+          ref="audio"
+          preload="auto"
+          volume="0.5"
+        >
+          <source src="toasty.mp3" />
+        </audio>
+        <div class="toggle-sound paused"></div>
+      </div>
+
+      
+      <div class="music-player3">
+        <audio
+          ref="audio3"
+          preload="auto"
+          volume="1"
+        >
+          <source src="uff.mp3" />
+        </audio>
+        <div class="toggle-sound paused"></div>
+      </div>
+
+        
+
+    </section>
+  </body>
+</html>
+
+
+<script type="text/javascript">
+
+  $(document).ready(function()
+  {
+
+    $(".bg").click(function()
+    {
+      $("body").removeClass("bg1");
+      $("body").removeClass("bg2");
+      $("body").removeClass("bg3");
+
+      $(".bg").removeClass("selected");
+      $(this).addClass("selected");
+
+      $("body").addClass("bg" + $(this).attr("param-id"));
+    });
+
+  });
+
+</script>
